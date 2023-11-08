@@ -1,0 +1,34 @@
+CF_COURSE_NAME_HEADER: "Course Name"
+-> "CS.###"
+   Just kept as the raw string.
+
+CF_COURSE_TYPE_HEADER: "Course Type"
+-> "core" | "elective" | "other"
+   The code does some deeply cursed duck-typing of *constructors* here.
+
+CF_CAPACITY_HEADER: "Capacity"
+-> int
+
+CF_PREREQUISITES_HEADER: "Prerequisites"
+-> Comma-separated list of "DEPT.###"
+   The parsing of this is done in the Course constructor, not loadCourses.
+   As a special case if the first element is the literal string "OR-PREREQS"
+   then the prerequisites are OR'ed instead of AND'ed. I suppose to handle
+   cases like Math of CS or Math Structures being a prereq.
+
+CF_STUDENTS_WITH_PREREQ_WAIVER_HEADER: "Students with Prereq Waiver"
+-> Comma-separated list of emails
+   Again, parsing is done in the Course ctor.
+   Interesting that the waivers are stored on the *course*, not elsewhere.
+   It may be out of scope to implement this in our algorithm for the time being.
+
+I think the comments on CF_{COURSE_TYPE, CAPACITY}_HEADER are backwards.
+
+CSV Dict Reader takes the first line of the CSV as the dict keys, and then
+yields dicts associating each column with the key. So it probably looks
+something like this:
+
+"Course Name","Course Type","Capacity","Prerequisites","Students with Prereq Waiver"
+"CS.123","core","35","",""
+"CS.321","elective","30","CS.123","jdoe@carleton.edu"
+"CS.322","elective","30","OR-PREREQS,CS.123,MATH.246","mmustermann@carleton.edu"

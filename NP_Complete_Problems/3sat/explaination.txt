@@ -1,0 +1,19 @@
+In short, 3Sat's requirements are that each clause must have at least one true
+term. We encode a clause needing at least one true as addition, and encode the
+requirement that every clause be true trivially, as ILP requires each constraint
+to be true.
+
+As is traditional in boolean algebra we encode True as 1 and False as 0.
+
+First, we create a binary variable for each variable in the 3Sat problem.
+
+Each clause (A v B v C) is encoded as:
+
+  A + B + C >= 1
+
+If any one of the components is 1 (true), then the sum will be more than 1.
+
+Negated variables are encoded as (1 - A); this brings 0 to 1 and 1 to 0, like
+the negation operation ought to.
+
+There is no need to use the objective function.
