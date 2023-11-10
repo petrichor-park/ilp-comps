@@ -93,9 +93,10 @@ def generate_summaray_statistics_graph():
     dict["Basic Hospital Resident Matching"] = []
     for i in range(1):
         st = StudentGenerator(i) 
-        students, courses = st.generate_students(number_of_students=250)
+        students, courses = st.generate_students(number_of_students=300)
         dict["Gale Shapley Emulation"].append(generate_summary_statistics(gs_cs_match(students, courses), students))
         dict["Weighted Stable Matching"].append(generate_summary_statistics(weighted_cs_match(students, courses), students))
         dict["Basic Hospital Resident Matching"].append(generate_summary_statistics(hospital_resident_matching(students, courses), students))
-        basic_graph({"Gale Shapley Emulation":[generate_summary_statistics(gs_match_result, students), generate_summary_statistics(weighted_match_result, students)], "Weighted Stable Matching":[generate_summary_statistics(weighted_match_result, students)]})
+        stacked_plot(dict)
 
+generate_summaray_statistics_graph()
