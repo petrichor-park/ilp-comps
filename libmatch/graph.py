@@ -32,7 +32,7 @@ def basic_graph(summary_statistics):
                 estimator=np.mean)
         plt.show()
 
-def stacked_plot(summary_statistics):
+def stacked_plot(summary_statistics, num_students):
     '''
     Input dictionary with algirhtm name to list of summary statistics
     '''
@@ -54,7 +54,7 @@ def stacked_plot(summary_statistics):
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=8, rotation=0)
     plt.xlabel('Name')
     plt.xticks(rotation = 0)
-    plt.title('Percentages of 250 Students matched to Corresponding Choice',  fontsize=12)
+    plt.title('Percentages of ' + str(num_students) +  ' Students matched to Corresponding Choice',  fontsize=12)
 
     plt.tight_layout()
     print("saving...")
@@ -83,7 +83,7 @@ def weight_statistics(matchings, students, courses):
 
 def generate_weight_statistics():
     st = StudentGenerator(5) 
-    students, courses = st.generate_students(number_of_students=250)
+    students, courses = st.generate_students(number_of_students=300)
     weight_statistics({"Gale Shapley Emulation": gs_cs_match(students, courses), "Weighted CS Match": weighted_cs_match(students, courses), "Hospital Residents with Ties": hospital_resident_matching(students, courses)}, students, courses)
 
 def generate_summaray_statistics_graph():
