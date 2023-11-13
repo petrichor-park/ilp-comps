@@ -87,16 +87,17 @@ def generate_weight_statistics():
     weight_statistics({"Gale Shapley Emulation": gs_cs_match(students, courses), "Weighted CS Match": weighted_cs_match(students, courses), "Hospital Residents with Ties": hospital_resident_matching(students, courses)}, students, courses)
 
 def generate_summaray_statistics_graph():
+    num_students = 300
     dict = {}
     dict["Gale Shapley Emulation"] = []
     dict["Weighted Stable Matching"] = []
     dict["Basic Hospital Resident Matching"] = []
     for i in range(1):
         st = StudentGenerator(i) 
-        students, courses = st.generate_students(number_of_students=300)
+        students, courses = st.generate_students(number_of_students=num_students)
         dict["Gale Shapley Emulation"].append(generate_summary_statistics(gs_cs_match(students, courses), students))
         dict["Weighted Stable Matching"].append(generate_summary_statistics(weighted_cs_match(students, courses), students))
         dict["Basic Hospital Resident Matching"].append(generate_summary_statistics(hospital_resident_matching(students, courses), students))
-        stacked_plot(dict, 100)
+        stacked_plot(dict, num_students)
 
 generate_summaray_statistics_graph()
