@@ -97,6 +97,6 @@ def generate_summaray_statistics_graph():
         dict["Gale Shapley Emulation"].append(generate_summary_statistics(gs_cs_match(students, courses), students))
         dict["Weighted Stable Matching"].append(generate_summary_statistics(weighted_cs_match(students, courses), students))
         dict["Basic Hospital Resident Matching"].append(generate_summary_statistics(hospital_resident_matching(students, courses), students))
-        stacked_plot(dict)
+        stacked_plot(dict, 100)
 
 generate_summaray_statistics_graph()
