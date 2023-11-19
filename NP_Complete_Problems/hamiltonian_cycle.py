@@ -2,6 +2,15 @@ from mip import *
 from itertools import *
 
 def find_hamiltonian(edges):
+    '''
+    Check whether a Hamiltonian Cycle can be found in a graph.
+
+    Args:
+        edges (list): A list of tuples representing each edge in the graph
+
+    Returns:
+        list of names of variables that solve the ILP or a print statement that says no solution
+    '''
     model = Model()
     edge_vars = []
     vertices = make_list_of_vertices(edges)
@@ -48,6 +57,15 @@ def find_hamiltonian(edges):
    
 
 def make_list_of_vertices(edges):
+    '''
+    Extracts the vertices from a graph. 
+
+    Args:
+        edges (list): A list of tuples
+
+    Returns:
+        set of the vertices from all of the edges 
+    '''
     vertices = set()
     for tup in edges:
         vertices.update(tup)
@@ -57,6 +75,15 @@ def make_list_of_vertices(edges):
 #Adaptation of code from 
 #https://stackoverflow.com/questions/20297154/python-create-iterator-through-subsets-of-a-set-for-a-loop
 def make_subsets(vertex_list):  
+    '''
+    Creates all possible subsets of a graph.
+
+    Args:
+        edges (set): A list of vertices (int) from a graph
+
+    Returns:
+        list of lists representing all unique combinations of the vertices  
+    '''
     subsets = [[]]
     for vertex in vertex_list:
         for i in range(len(subsets)):
@@ -67,6 +94,15 @@ def make_subsets(vertex_list):
 
 
 def intersection(list1, list2):
+    '''
+    Finds the edges in a subset that exist in the original graph.
+
+    Args:
+        list1 (list): A list of tuples
+        list2 (list): A list of tuples
+    Returns:
+        list of tuples
+    '''
     common_edges = []
 
     for edge in list1:
@@ -76,6 +112,15 @@ def intersection(list1, list2):
 
 
 def organize_edges(edges):
+    '''
+    Sorts each tuple by smallest to biggest {ex: (2,1) becomes (1,2)}
+
+    Args:
+        edges (list): A list of tuples
+
+    Returns:
+        list of tuples
+    '''
     organized_edges = [tuple(sorted(t)) for t in edges]
     for tuple_edge in edges:
         organized_edges.append(sorted(tuple_edge))

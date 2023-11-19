@@ -1,8 +1,6 @@
 from mip import *
 from is_hrt_matching_stable import *
 from collections import defaultdict
-import sys
-#sys.path.append("libmatch")
 from preference_obj import *
 
 def hospital_resident_matching(residents, hospitals, print_matchings=False):
@@ -16,7 +14,7 @@ def hospital_resident_matching(residents, hospitals, print_matchings=False):
     Returns:
         A dictionary of hospitals containing the residents matched to them
     '''
-    try:
+    try: #Selects solver based on computer architecture. If this results in error, install the Gerobi optimizer.
         model = Model(solver_name=CBC)
     except:
         model = Model(solver_name=GRB)
@@ -58,6 +56,7 @@ def hospital_resident_matching(residents, hospitals, print_matchings=False):
                 if weight >= resident_rank:
                     better_residents.append(res)
 
+                # Ensures that each matching is stable: that if a resident is not matched to a hospital it ranks at least as high, then those hospitals are all filled with better students
             model += (hospital.capacity)*(1-xsum(resident_to_hospital_to_vars[resident][hos] for hos in better_hospitals)) <= xsum(resident_to_hospital_to_vars[res][hospital] for res in better_residents)
     
     model.verbose = False

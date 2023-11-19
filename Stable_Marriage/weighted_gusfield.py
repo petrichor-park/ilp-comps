@@ -11,7 +11,18 @@ import pandas as pd
 import matplotlib.pyplot as plt 
 
 def weighted_stable_matching(man_preferences, man_weighted_preferences, woman_preferences, woman_weighted_preferences):
+    '''
+    Returns a matching given preferences and weights for men and women which maximizes the weights of the women's preferences.
 
+    Inputs:
+    - man_preferences: a dictionary storing a woman to her list of preferences
+    - man_weighted_preferences: a dictionary storing the men to a dictionary of their weights for each woman
+    - woman_preferences: a dictionary storing a man to his list of preferences
+    - woman_weighted_preferences: a dictionary storing the women to a dictionary of their weights for each man
+
+    Returns:
+    - a list of tuples representing (m, w) pairs
+    '''
     men = man_preferences.keys()
     women = woman_preferences.keys()
 
@@ -65,6 +76,7 @@ def weighted_stable_matching(man_preferences, man_weighted_preferences, woman_pr
         for m in men:
             model += xsum(x[m_prime][w] for m_prime in w_pref_sets[m][w]) - xsum(x[m][w_prime] for w_prime in m_pref_sets[m][w]) <= 0
     
+    # optimize preferences for women
     model.objective = xsum(-x[m][w] * woman_weighted_preferences[w][m-1][1] for m in men for w in women)
 
     model.verbose = False
@@ -79,6 +91,20 @@ def weighted_stable_matching(man_preferences, man_weighted_preferences, woman_pr
     return output
 
 def generate_random_weights(men, women):
+    '''
+    Given a set of men and a set of women return weights and preference lists.
+
+    Inputs:
+    - men: a list of strings of men's names
+    - women: a list of strings of women's names
+
+    Returns:
+    - a dictionary of men to a dictionary of each woman to the preference weight
+    - a dictionary of men to their ordered preference list
+    - a dictionary of women to a dictionary of each men to the preference weight
+    - a dictionary of women to their ordered preference list
+    '''
+    # randomize weights
     man_weighted_preferences = {}
     woman_weighted_preferences = {}
     for m in men:
@@ -90,6 +116,7 @@ def generate_random_weights(men, women):
             man_weighted_preferences[m][w] = random.uniform(1, 100)
             woman_weighted_preferences[w][m] = random.uniform(1, 100)
     
+    # normalize weights
     for m in men:
         s = sum(man_weighted_preferences[m].values())
         for w in women:
@@ -99,6 +126,7 @@ def generate_random_weights(men, women):
         for m in men:
             woman_weighted_preferences[w][m] = man_weighted_preferences[w][m] * 100 / float(s)
 
+    # generate ranked prefrences 
     for m in men:
         man_weighted_preferences[m] = sorted(man_weighted_preferences[m].items(), key=lambda x:-x[1])
     for w in women:
@@ -107,35 +135,10 @@ def generate_random_weights(men, women):
     man_preferences = {}
     woman_preferences = {}
 
+    # store ranked preferences 
     for m in man_weighted_preferences.keys():
         man_preferences[m] = list(map(lambda x: x[0], man_weighted_preferences[m]))
     for w in woman_weighted_preferences.keys():
         woman_preferences[w] = list(map(lambda x: x[0], man_weighted_preferences[w]))
 
     return man_weighted_preferences, man_preferences,  woman_weighted_preferences, woman_preferences
-
-if __name__ == "__main__":
-    random.seed(1)
-    x = []
-    y = []
-    print("Starting")
-    for j in range(1, 100, 5):
-        print(j)
-        x.append(j)
-        men = range(1, j + 1)
-        women = range(1, j + 1)
-        n = 10
-        counter = 0 
-        for i in range(n):
-            prefs = generate_random_weights(men, women)
-            wsm = weighted_stable_matching( prefs[1], prefs[0], prefs[3] , prefs[2])
-            osm = stable_matching( prefs[1], prefs[3] , "w")
-            if not (is_matching_stable(wsm,  prefs[1], prefs[3]) or is_matching_stable(osm,  prefs[1], prefs[3])):
-                print("uh oh")
-            if osm == wsm:
-                counter += 1
-        y.append(counter / float(n))
-    data_plot = pd.DataFrame({"Number of Men and Women":x, "Percent of identical matchings between weighted and unweighted":y})
-    sns.regplot(x = "Number of Men and Women", y = "Percent of identical matchings between weighted and unweighted", data=data_plot).set(title='Difference Between Weighted and Unweighted Stable Matchings with Optimization for Women\'s Preferences')
-    plt.savefig("weighted_vs_unweighted.png")
-    print(x, y)

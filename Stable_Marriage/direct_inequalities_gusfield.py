@@ -16,7 +16,8 @@ def stable_matching(man_preferences, woman_preferences, optimize = None):
 
         Returns:
         - a list of tuples representing (m, w) pairs
-        '''
+    '''
+    
     men = man_preferences.keys()
     women = woman_preferences.keys()
 
@@ -93,40 +94,3 @@ def stable_matching(man_preferences, woman_preferences, optimize = None):
             if x[m][w].x == 1:
                 output.append((m, w))
     return output
-
-if __name__ == "__main__":
-    pass
-    # men_prefs = {"A": ["2", "1", "3"], "B": ["3", "2", "1"], "C": ["1", "3", "2"]}
-    # woman_prefs = {"1": ["B", "A", "C"], "2": ["C", "B", "A"], "3": ["A", "C", "B"]}
-    # print("student optimal", sorted(stable_matching(men_prefs, woman_prefs, 'm')))
-    # print(is_matching_stable([("A", "1"),("B", "2"), ("C", "3")],  men_prefs, woman_prefs))
-    # print(is_matching_stable([("A", "2"),("B", "3"), ("C", "1")],  men_prefs, woman_prefs))
-    # print(is_matching_stable([('A', '3'), ('B', '1'), ('C', '2')],  men_prefs, woman_prefs))
-    # random.seed(1)
-    # men = range(1, 30)
-    # women = range(1, 30)
-    # for i in range(10):
-    #     prefs = generate_random_preferences_both(men, women)
-    #     men_prefs = prefs[0]
-    #     woman_prefs = prefs[1]
-    #     gs_matching = galeShapley(men_prefs, woman_prefs)
-    #     gs_matching.sort()
-    #     ilp_matching = stable_matching(men_prefs, woman_prefs, 'm')
-    #     ilp_matching.sort()
-    #     print("Matches GS?", ilp_matching == gs_matching)
-    #     ilp_sum = 0
-    #     gs_sum = 0
-    
-    #     for pair in ilp_matching:
-    #         ilp_sum += men_prefs[pair[0]].index(pair[1])
-
-    #     for pair in gs_matching:
-    #         gs_sum += men_prefs[pair[0]].index(pair[1])
-
-    #     print(ilp_sum, gs_sum)
-    #     print(ilp_matching, men_prefs, woman_prefs)
-
-    #     if is_matching_stable(ilp_matching, men_prefs, woman_prefs) == False:
-    #         print("oh no ilp unstable")
-    #     if is_matching_stable(gs_matching, men_prefs, woman_prefs) == False:
-    #         print("oh no gs unstable")

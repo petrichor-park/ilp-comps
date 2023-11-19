@@ -1,5 +1,4 @@
 from mip import *
-from is_matching_stable import *
 from collections import defaultdict
 import sys
 sys.path.append("libmatch")
@@ -28,26 +27,28 @@ def hospital_resident_matching(residents, hospitals, print_matchings=False):
     for resident in residents:
         resident_to_hospital_to_vars[resident] = {}
         for hospital in hospitals:
-            if resident.weights[hospital] > 0:
+            if resident.weights[hospital] >= 0:
                 var = model.add_var(name = resident.name + '-' + hospital.name, var_type = BINARY)
-                resident_to_hospital_to_vars[resident][hospital] = var
-                all_vars.append(var)
+            else: #Unsure of why this step is necessary but it prevents any infeasibilities
+                var = model.add_var(name = resident.name + '-' + hospital.name, var_type = BINARY, lb=0, ub=0)
+            resident_to_hospital_to_vars[resident][hospital] = var
+            all_vars.append(var)
     
     # Want to maximize number of residents matched
     model.objective = maximize(xsum(var for var in all_vars))
 
     # Each resident can only be matched to one hospital
     for resident in residents:
-        model += xsum(resident_to_hospital_to_vars[resident][hospital] if resident.weights[hospital] > 0 else 0 for hospital in resident_to_hospital_to_vars[resident].keys()) <= 1
+        model += xsum(resident_to_hospital_to_vars[resident][hospital] if resident.weights[hospital] >= 0 else 0 for hospital in resident_to_hospital_to_vars[resident].keys()) <= 1
     
     # Each hospital can have up to capacity residents
     for hospital in hospitals:
-        model += xsum(resident_to_hospital_to_vars[resident][hospital] if resident.weights[hospital] > 0 else 0 for resident in resident_to_hospital_to_vars.keys()) <= hospital.capacity
+        model += xsum(resident_to_hospital_to_vars[resident][hospital] if resident.weights[hospital] >= 0 else 0 for resident in resident_to_hospital_to_vars.keys()) <= hospital.capacity
     
     # Want to ensure stable matchings are made based on rankings
     for resident in residents:
         for hospital in hospitals:
-            if resident.weights[hospital] > 0:
+            if resident.weights[hospital] >= 0:
                 hospital_rank = resident.weights[hospital]
                 resident_rank = hospital.weights[resident]
 
@@ -61,7 +62,8 @@ def hospital_resident_matching(residents, hospitals, print_matchings=False):
                     if weight >= resident_rank:
                         better_residents.append(res)
 
-                model += (hospital.capacity)*(1-xsum(resident_to_hospital_to_vars[resident][hos] for hos in better_hospitals)) <= xsum(resident_to_hospital_to_vars[res][hospital] if res.weights[hospital] > 0 else 0 for res in better_residents)
+                # Ensures that each matching is stable: that if a resident is not matched to a hospital it ranks at least as high, then those hospitals are all filled with better students
+                model += (hospital.capacity)*(1-xsum(resident_to_hospital_to_vars[resident][hos] for hos in better_hospitals)) <= xsum(resident_to_hospital_to_vars[res][hospital] if res.weights[hospital] >= 0 else 0 for res in better_residents)
     
     model.verbose = False
     model.max_gap = 0.025

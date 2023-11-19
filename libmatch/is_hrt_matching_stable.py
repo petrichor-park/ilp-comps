@@ -84,13 +84,23 @@ def check_hrt_matching(hrt_match, residents, hospitals):
     return True
 
 def find_object(name, hospitals):
+    '''
+    Helper function for check_hrt_matching()
+
+    Args:
+        name (str): name of a hospital/resident
+        hospitals (list): A list of hospitals (objects of the 'Course' class)
+    
+    Returns:
+        hospital/student object that matches the name provided 
+    '''    
     for hospital in hospitals:
         if hospital.name == name:
             return hospital
 
 def strict_preferences(rank, rankings):
     '''
-    Helper function for check_matching()
+    Helper function for check_hrt_matching()
 
     Args:
         rank (int): given weight of a hospital/resident
@@ -108,14 +118,14 @@ def strict_preferences(rank, rankings):
 
 def strict_mutual_preference(resident, hospital, modified_hrt_match):
     '''
-    Helper function for check_matching()
+    Helper function for check_hrt_matching()
 
     Args:
         resident (Student object): A resident that has preferences to switch into another hospital
         hospital (Course object): A hospital that resident would like to switch into
-        num_of_residents (int): An integer representing the number of residents currently matched to hospital
+        modified_hrt_match (dict): A hashmap containing hospital as the key and a list of residents as a value
     Returns:
-        A boolean representing whether resident and hospital are a blocking pair
+        A tuple containing a boolean representing whether resident and hospital are a blocking pair AND a resident that makes the blocking pair (if it exists)
     '''
     asking_resident_weight = hospital.weights[resident]
     hospitals_current_residents = modified_hrt_match[hospital]

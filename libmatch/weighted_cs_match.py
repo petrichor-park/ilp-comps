@@ -12,9 +12,9 @@ from is_hrt_matching_stable import *
 
 def weighted_cs_match(students, courses):
     '''
-    Performs an ILP implementation of the course student matching problem with ties
+    Performs an ILP implementation of the course student matching problem with ties, optimizing to maximize student's preference weights.
 
-    Args:
+    Input:
         students (list(student)): a list containing students (which take the student class) to match to courses
         courses (list(course)):  a list containing courses (which take the course class) to match to students
     
@@ -76,10 +76,3 @@ def weighted_cs_match(students, courses):
                 matchings[course].append(student)
     
     return matchings
-
-def run_weighted_cs_match():
-    st = StudentGenerator()
-    students, courses = st.generate_students(number_of_students=20)
-    match_result = weighted_cs_match(students, courses)
-    print(check_hrt_matching(match_result, students, courses))
-    print(match_result)

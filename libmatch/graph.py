@@ -11,13 +11,22 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from weighted_cs_match import *
 import numpy as np
-from hospital_resident_matching import *
+import hospital_resident_matching
+sys.path.append("../optimizations")
+import hrt_reduced_vars
 
 
 def basic_graph(summary_statistics):
     '''
-    Input dictionary with algirhtm name to list of summary statistics
+    Generate a graph for each item in summary statistics which compares each algorithm run.
+
+    Inputs:
+    - summary_statistics: dictionary with algorithm name to list of summary statistics
+
+    Output:
+    - a graph for each summary statistic catagory (displayed not saved to file)
     '''
+
     columns = ['Name', 'percentage_students_matched', 'num_students_matched', 'percent_matched_to_first_choice', 'percent_matched_to_second_choice', 'num_matched_to_first_choice', 'num_matched_to_second_choice', 'percent_seniors_matched', 'percent_juniors_matched', 'percent_sophomores_matched', 'percent_freshman_matched']
     lst = []
     for algorithm in summary_statistics:
@@ -32,9 +41,16 @@ def basic_graph(summary_statistics):
                 estimator=np.mean)
         plt.show()
 
-def stacked_plot(summary_statistics):
+def stacked_plot(summary_statistics, num_students):
     '''
-    Input dictionary with algirhtm name to list of summary statistics
+    Generate a stacked bar graph and save to a file named percentage_matched_stacked.svg.
+
+    Inputs:
+    - summary_statistics: dictionary with algorithm name to list of summary statistics
+    - number of students that were used in these trials
+
+    Output:
+    - a graph
     '''
     columns = ['Name', 'percent_matched_to_first_choice', 'percent_matched_to_second_choice', 'percentage_students_matched']
     lst = []
@@ -54,14 +70,27 @@ def stacked_plot(summary_statistics):
     ax.set_xticklabels(ax.get_xticklabels(), fontsize=8, rotation=0)
     plt.xlabel('Name')
     plt.xticks(rotation = 0)
-    plt.title('Percentages of 250 Students matched to Corresponding Choice',  fontsize=12)
+    plt.title('Percentages of ' + str(num_students) +  ' Students matched to Corresponding Choice',  fontsize=12)
 
     plt.tight_layout()
     print("saving...")
-    plt.savefig('percentage_matched_stacked.svg')
+    plt.savefig('./percentage_matched_stacked.svg')
+    plt.show()
 
 
 def weight_statistics(matchings, students, courses):
+    '''
+    Generate weight statistics given a matching. 
+
+    Inputs:
+    - matchings: matching of students to courses
+    - students: list of students 
+    - courses: list of courses
+
+    Output:
+    - Graph of weights in the file weighted_preferences.svg
+    '''
+
     columns = ["Name", "Average Student Weighted Preference"]
     lst = []
     for matching in matchings:
@@ -82,21 +111,44 @@ def weight_statistics(matchings, students, courses):
     plt.savefig('weighted_preferences.svg')
 
 def generate_weight_statistics():
+    '''
+    Wrapper method to generate weight statistics for 300 students. 
+
+    Inputs:
+
+    Output:
+    - Graph of weights in the file weighted_preferences.svg
+    '''
     st = StudentGenerator(5) 
-    students, courses = st.generate_students(number_of_students=250)
+    students, courses = st.generate_students(number_of_students=300)
     weight_statistics({"Gale Shapley Emulation": gs_cs_match(students, courses), "Weighted CS Match": weighted_cs_match(students, courses), "Hospital Residents with Ties": hospital_resident_matching(students, courses)}, students, courses)
 
-def generate_summaray_statistics_graph():
-    dict = {}
-    dict["Gale Shapley Emulation"] = []
-    dict["Weighted Stable Matching"] = []
-    dict["Basic Hospital Resident Matching"] = []
+def generate_summary_statistics_graph(number_of_students=300,add_ties=False,print_statistics=False):
+    '''
+    Wrapper method to generate stacked bar graph. 
+
+    Inputs:
+    - optional: int representing number of students
+
+    Output:
+    - graph in the file percentage_matched_stacked.svg
+    '''
+
+    dic = {}
+    dic["Gale Shapley Emulation"] = []
+    dic["Weighted Stable Matching"] = []
+    dic["Basic Hospital Resident Matching"] = []
+    dic["Hospital Resident Reduced Variables"] = []
     for i in range(1):
         st = StudentGenerator(i) 
-        students, courses = st.generate_students(number_of_students=300)
-        dict["Gale Shapley Emulation"].append(generate_summary_statistics(gs_cs_match(students, courses), students))
-        dict["Weighted Stable Matching"].append(generate_summary_statistics(weighted_cs_match(students, courses), students))
-        dict["Basic Hospital Resident Matching"].append(generate_summary_statistics(hospital_resident_matching(students, courses), students))
-        stacked_plot(dict)
-
-generate_summaray_statistics_graph()
+        students, courses = st.generate_students(number_of_students=number_of_students, add_ties=add_ties)
+        dic["Gale Shapley Emulation"].append(generate_summary_statistics(gs_cs_match(students, courses), students))
+        dic["Weighted Stable Matching"].append(generate_summary_statistics(weighted_cs_match(students, courses), students))
+        dic["Basic Hospital Resident Matching"].append(generate_summary_statistics(hospital_resident_matching.hospital_resident_matching(students, courses), students))
+        dic["Hospital Resident Reduced Variables"].append(generate_summary_statistics(hrt_reduced_vars.hospital_resident_matching(students, courses), students))
+        if print_statistics:
+            print(dic['Gale Shapley Emulation'])
+            print(dic['Weighted Stable Matching'])
+            print(dic['Basic Hospital Resident Matching'])
+            print(dic['Hospital Resident Reduced Variables'])
+        stacked_plot(dic, number_of_students)

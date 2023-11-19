@@ -2,6 +2,9 @@ from preference_obj import Student, Course
 from hospital_resident_matching import create_course_preferences
 import random
 
+'''
+The state whether Carleton's CS courses are electives or not. Data is from the Carleton CS website. Used in StudentGenerator.py as a global constant.
+'''
 isCourseElective =  {
     'CS202': False,
     'CS208': False,
@@ -35,6 +38,9 @@ isCourseElective =  {
     'CS362': True,
 }
 
+'''
+The CS classes included in Carleton's CS Match for Spring 2023 and their capacities. Used in StudentGenerator.py as a function parameter. Data is obtained from Professor David Musicant.
+'''
 Sp22Courses = [
     {
         "courseName": 'CS202',
@@ -74,6 +80,9 @@ Sp22Courses = [
     },
 ]
 
+'''
+Summary statistics of Carleton's 2023 CS Match. StudentGenerator.py as a function parameter. Data is obtained from Professor David Musicant.
+'''
 studentDistribution = {
     'Freshman': {
         'percentage_of_students': 0.159,
@@ -94,12 +103,22 @@ studentDistribution = {
 }
 
 def normalize(weights, noneCourse):
+    '''
+    Normalizes the weights of a student's preferences so that the sum of weights of selected courses equals to 1. If a course hasn't been chosen, the weights are set to -1. None course is also added to the weights dict with a weight of 0.
+
+    args:
+        weights (dict): a dict of Course objects to weights
+        noneCourse: a Course object that represents the "None" course
+    
+    returns:
+        weights (dict): a dict of Course objects to weights that have been normalized
+    '''
     total = 0
     for course in weights:
         total += weights[course]
     if (total != 0):
         for course in weights:
-            weights[course] = round(weights[course] / total, 3)
+            weights[course] = weights[course] / total
     for course in weights:
         if weights[course] == 0:
             weights[course] = -1
@@ -108,12 +127,23 @@ def normalize(weights, noneCourse):
     return weights
 
 class StudentGenerator():
-    # TODO: Add option to have ties
-    # TODO: Add num_required_courses and num_elective_courses
+    '''
+    A class that contains functions to generate student preferences.
+    '''
+
     def __init__(self, seed = 0) -> None:
         random.seed(seed)
 
     def generate_student_interval(self, student_distribution = studentDistribution):
+        '''
+        Generates a dict of student type to a dict of start and end interval of the percentage of students that are of that type.
+
+        args:
+            student_distribution (dict): a dict of student type to a dict of percentage of students and mean of number of courses above none
+
+        returns:
+            student_interval (dict): a dict of student type to a dict of start and end interval of the percentage of students that are of that type
+        '''
         student_interval = {}
         prefix_sum = 0
         for student_type, student_info in student_distribution.items():
@@ -124,23 +154,79 @@ class StudentGenerator():
         return student_interval
     
     def generate_random_student_type(self, student_interval):
+        '''
+        Generates a random student type based on the student interval.
+
+        args:
+            student_interval (dict): a dict of student type to a dict of start and end interval of the percentage of students that are of that type
+
+        returns:
+            student_type (str): a random student type
+        '''
+            
         random_number = random.uniform(0, 1)
         for student_type, interval in student_interval.items():
             if interval['start'] <= random_number < interval['end']:
                 return student_type
         return None
 
-    def generate_student_weights(self, student_type, courseObjects, noneCourse):
+    def add_ties(self, weights):
+        '''
+        Randomly adds ties to a student's preferences. 50% chance of adding ties when the student has multiple choices.
+
+        args:
+            weights (dict): a dict of Course objects to weights
+
+        returns:
+            weights (dict): a dict of Course objects to weights that could've been modified to add ties
+        '''
+        list_selected_courses = []
+        for course in weights:
+            if (weights[course] != 0):
+                list_selected_courses.append(course)
+        
+        if (len(list_selected_courses) > 1 and (random.uniform(0, 1) < 0.5)):
+            random.shuffle(list_selected_courses)
+            equal_weight = (weights[list_selected_courses[0]] + weights[list_selected_courses[1]]) / 2
+            weights[list_selected_courses[0]] = equal_weight
+            weights[list_selected_courses[1]] = equal_weight
+
+    def generate_student_weights(self, student_type, courseObjects, noneCourse, add_ties=False):
+        '''
+        Generates a dict of Course objects to weights for a student.
+        
+        args:
+            student_type (str): a student type
+            courseObjects (list): a list of Course objects
+            noneCourse: a Course object that represents the "None" course
+            add_ties (bool): whether to add ties or not
+
+        returns:
+            studentWeights (dict): a dict of Course objects to weights for a student
+        '''
+
         studentWeights = {}
-        # print(courseObjects)
         p_num_courses_above_none = studentDistribution[student_type]['mean_of_number_of_courses_above_none'] / len(courseObjects)
-        for courseObject in courseObjects:
-            weight = random.uniform(0, 1)
-            studentWeights[courseObject] = 0 if weight > p_num_courses_above_none else round(weight, 5)
+        added_weight = False
+        while (not added_weight):
+            for courseObject in courseObjects:
+                weight = random.uniform(0, 1)
+                if weight > p_num_courses_above_none:
+                    studentWeights[courseObject] = 0
+                else:
+                    added_weight = True
+                    studentWeights[courseObject] = weight
+
+        if add_ties:
+            self.add_ties(studentWeights)
+
         studentWeights = normalize(studentWeights, noneCourse)
         return studentWeights
 
     def student_type_to_year(self, student_type, year):
+        '''
+        Converts a student type to a class year.
+        '''
         if student_type == 'Freshman':
             return year + 4
         elif student_type == 'Sophomore':
@@ -153,6 +239,10 @@ class StudentGenerator():
             return None
 
     def generate_course_objects(self, list_of_courses = Sp22Courses):
+        '''
+        Generates a list of Course objects from a list of courses.
+        '''
+
         coursesObjects = []
         for course in list_of_courses:
             courseName = course["courseName"]
@@ -165,6 +255,9 @@ class StudentGenerator():
         return (coursesObjects, noneCourse)
 
     def generate_student_course_history(self, student_type):
+        '''
+        Generates the number of required and elective courses for a student based on their student class year.
+        '''
         num_required_courses = 0
         num_elective_courses = 0
 
@@ -183,8 +276,21 @@ class StudentGenerator():
 
         return (num_required_courses, num_elective_courses)
 
+    def generate_students(self, number_of_students = 34, list_of_courses = Sp22Courses, student_distribution = studentDistribution, base_year = 2022, add_ties = False):
+        '''
+        Generates a list of Student objects and a list of Course objects.
 
-    def generate_students(self, number_of_students = 34, list_of_courses = Sp22Courses, student_distribution = studentDistribution, base_year = 2022):
+        args:
+            number_of_students (int): the number of students to generate
+            list_of_courses (list): a list of courses. Default is Spring 2022 CS courses
+            student_distribution (dict): a dict of student type to a dict of percentage of students and mean of number of courses above none
+            base_year (int): the base year of the students
+            add_ties (bool): whether to add ties or not
+        
+        returns:
+            students (list): a list of Student objects
+            courseObjects (list): a list of Course objects
+        '''
         courseObjects, noneCourse = self.generate_course_objects(list_of_courses)
         students = []
         student_interval = self.generate_student_interval(student_distribution)
@@ -192,7 +298,7 @@ class StudentGenerator():
             studentName = "S" + str(student_id)
             studentType = self.generate_random_student_type(student_interval)
             num_req_courses, num_elec_courses = self.generate_student_course_history(studentType)
-            studentWeights = self.generate_student_weights(studentType, courseObjects, noneCourse)
+            studentWeights = self.generate_student_weights(studentType, courseObjects, noneCourse, add_ties)
             studentYear = self.student_type_to_year(studentType, base_year)
             student = Student(name=studentName, class_year = studentYear, num_required_courses=num_req_courses, num_elective_courses=num_elec_courses, weights=studentWeights)
             students.append(student)

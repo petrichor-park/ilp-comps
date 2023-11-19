@@ -2,12 +2,23 @@ from mip import *
 from collections import defaultdict
 
 def ilptsp(points):
+    '''
+    Integer Linear Programming implementation of the Traveling Salesperson Problem
+
+    Args:
+        points (list(tuple(int))): a list of (x,y) coordinates that represent the locations of each "city"
+    
+    Returns:
+        None (prints out a list of cities to travel between)
+    '''
     #Assumes points are on an (x,y) plane and in such a form
     m = Model(solver_name='GRB')
 
     pointvariables = {}
+    #these two dicts separate variables by inwards edge and outwards edge to set up for the constraints
     edges_by_point_outward = defaultdict(list)
     edges_by_point_inward = defaultdict(list)
+
     edges = []
     edgevars = []
     for i in range(len(points)-1):
@@ -15,6 +26,8 @@ def ilptsp(points):
             edge = ((points[i][0]-points[j][0])**(2)+(points[i][1]-points[j][1])**(2))**(0.5)
             var1 = m.add_var(name=str(points[i])+'-'+str(points[j]),var_type=BINARY)
             var2 = m.add_var(name=str(points[j])+'-'+str(points[i]),var_type=BINARY)
+
+            #structure the variable relations as follows to properly set up constraints
             edges.append(edge)
             edges.append(edge)
             edgevars.append(var1)
@@ -57,8 +70,4 @@ def ilptsp(points):
             if abs(v.x) > 1e-6 and '-' in v.name: # only printing non-zero edges
                 print('{} : {}'.format(v.name, v.x))
 
-
-pts = [(0,0),(1,0),(2,0),(3,3),(2,4),(30,30),(10,50),(15,30)]
-
-ilptsp(pts)
 

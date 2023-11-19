@@ -4,11 +4,11 @@ def generate_summary_statistics(matchings, students):
     '''
     Generates summary statistics about a set of matchings of students to courses, including how many students were matched, and to how high of a preference they were matched.
 
-    args:
+    Args:
         matchings (dict): a matching of course names (strings) to the students matched to them (strings, student name)
         students  (list(student)): a list of all students participating in the match
     
-    returns:
+    Returns:
         summary_statistics (dict): a dict containing several summary statistics about the matching
     '''
 
@@ -21,28 +21,37 @@ def generate_summary_statistics(matchings, students):
     class_years = sorted(class_year_counts.keys())
 
     matched_students = []
-    non_matched_students = []
     matched_to_first_choice = 0
     matched_to_second_choice = 0
 
-    class_year_matching = [0,0,0,0]
+    class_year_matching = [0,0,0,0] # Should be exactly 4 years
     
     for course, course_students in matchings.items():
         if course != NO_COURSE_PREFERENCE:
             for student in course_students:
                 matched_students.append(student)
                 student_preferences = sorted(name_to_student[student].weights.items(), key=lambda x: x[1], reverse=True)
-                # student_preferences = sorted([(c, weight) for c, weight in name_to_student[student].weights.items()], reverse=True)
-                if course == student_preferences[0][0].name:
+                first_preferences = set() # Accounts for the fact that there can be multiple first choices or second choices
+                second_preferences = set()
+
+                first_weight = student_preferences[0][1]
+                second_weight = -1
+                for other_course, weight in student_preferences:
+                    if weight == first_weight:
+                        first_preferences.add(other_course.name)
+                    elif second_weight == -1 or weight == second_weight:
+                        second_preferences.add(other_course.name)
+                        second_weight = weight
+                    else:
+                        break
+                # The above code creates the buckets for the first and second choices (highest weights and second highest weight)
+
+                if course in first_preferences:
                     matched_to_first_choice += 1
-                elif course == student_preferences[1][0].name:
+                elif len(first_preferences) == 1 and course in second_preferences:
                     matched_to_second_choice += 1
-                    student_obj
                 student_obj = find_student(student, students)
-                class_year_matching[class_years.index(student_obj.class_year)] += 1
-        else:
-            for student in course_students:
-                non_matched_students.append(student)
+                class_year_matching[class_years.index(student_obj.class_year)] += 1 # Want to increment the class year
 
     
     percentage_students_matched = float(len(matched_students)/len(students))
