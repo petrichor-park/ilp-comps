@@ -9,7 +9,7 @@ Problems included:
     - Travelling salesperson problem
     - Hamiltonian circuit
     - k-clique
-
+    - knapsack
 
 # Libmatch
 This folder contains a library of classes for "preference havers", including students and courses.
